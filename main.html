@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Secure OS - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #1f3b57 0, #020617 55%, #000 100%);
+      color: #ffffff;
+    }
+
+    /* GENERAL CARD STYLE (login & otp) */
+    .card {
+      width: 430px;
+      padding: 40px 60px;
+      border-radius: 20px;
+      background: rgba(5, 10, 25, 0.96);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      display: none;
+    }
+
+    .card.active {
+      display: block;
+    }
+
+    .title-main {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
+    }
+
+    .subtitle-main {
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #d1d5db;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #4b5563;
+      background: transparent;
+      color: #e5e7eb;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .form-group input::placeholder {
+      color: #9ca3af;
+    }
+
+    .form-group input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px #38bdf8;
+    }
+
+    .btn {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px 0;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(90deg, #1d9bf0, #22d3ee);
+      box-shadow: 0 18px 40px rgba(37, 99, 235, 0.7);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 45px rgba(37, 99, 235, 0.8);
+      opacity: 0.95;
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+    }
+
+    .error {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #f97373;
+      min-height: 18px;
+      text-align: left;
+    }
+
+    .info-text {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: left;
+    }
+
+    /* DESKTOP VIEW */
+    .desktop {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at top, #1f2933 0, #020617 60%, #000 100%);
+      position: relative;
+      overflow: hidden;
+      color: #e5e7eb;
+    }
+
+    .desktop.active {
+      display: block;
+    }
+
+    .desktop-icons {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .icon {
+      width: 70px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .icon-box {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(37, 99, 235, 0.4));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 6px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+      font-size: 22px;
+    }
+
+    .icon-label {
+      font-size: 12px;
+      color: #e5e7eb;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    }
+
+    .window {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 720px;
+      max-width: 90vw;
+      height: 430px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.96);
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .window-topbar {
+      height: 38px;
+      background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(30, 64, 175, 0.9));
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+    }
+
+    .win-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #ef4444;
+    }
+
+    .win-dot:nth-child(2) {
+      background: #facc15;
+    }
+
+    .win-dot:nth-child(3) {
+      background: #22c55e;
+    }
+
+    .window-title {
+      margin-left: 10px;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .window-body {
+      flex: 1;
+      display: flex;
+      padding: 18px;
+      gap: 18px;
+    }
+
+    .window-left {
+      flex: 2;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 16px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 60%);
+    }
+
+    .window-right {
+      flex: 1.2;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 14px;
+      background: radial-gradient(circle at top, rgba(59, 130, 246, 0.18), transparent 65%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .window-heading {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .window-subtext {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(22, 163, 74, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      margin-bottom: 14px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    .mini-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .metric-box {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-label {
+      color: #9ca3af;
+      font-size: 12px;
+    }
+
+    .metric-value {
+      font-weight: 600;
+    }
+
+    .taskbar {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 720px;
+      max-width: 90vw;
+      height: 42px;
+      margin-bottom: 16px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 10px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+    }
+
+    .task-start {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(145deg, #22d3ee, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .task-search {
+      flex: 1;
+      font-size: 12px;
+      color: #9ca3af;
+      padding-left: 8px;
+    }
+
+    .task-clock {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        width: 95%;
+        padding: 24px 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN CARD -->
+  <div id="loginCard" class="card active">
+    <div class="title-main">Secure OS</div>
+    <div class="subtitle-main">SYSTEM LOGIN</div>
+    <div class="section-title">Login</div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          placeholder="Enter username"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter password"
+        />
+      </div>
+
+      <button type="submit" class="btn">Login</button>
+      <div class="error" id="loginError"></div>
+      <div class="info-text">
+        <!-- Demo credentials: <b>admin</b> / <b>1234</b> -->
+      </div>
+    </form>
+  </div>
+
+  <!-- OTP CARD -->
+  <div id="otpCard" class="card">
+    <div class="title-main">Secure OS</div>
+    <div class="subtitle-main">IDENTITY VERIFICATION</div>
+    <div class="section-title">Enter OTP</div>
+
+    <form id="otpForm">
+      <div class="form-group">
+        <label for="otp">One-Time Password (OTP)</label>
+        <input
+  type="text"
+  id="otp"
+  placeholder="Enter 6-digit OTP"
+  maxlength="6"
+/>
+      </div>
+
+      <button type="submit" class="btn">Verify OTP</button>
+      <div class="error" id="otpError"></div>
+      <div class="info-text">
+        <!-- Demo OTP: <b>559911</b> (hardcoded for project demo) -->
+      </div>
+    </form>
+  </div>
+
+  <!-- DESKTOP VIEW -->
+  <div id="desktop" class="desktop">
+    <div class="desktop-icons">
+      <div class="icon">
+        <div class="icon-box">💻</div>
+        <div class="icon-label">System</div>
+      </div>
+      <div class="icon">
+        <div class="icon-box">🩺</div>
+        <div class="icon-label">Health</div>
+      </div>
+      <div class="icon">
+        <div class="icon-box">📁</div>
+        <div class="icon-label">Files</div>
+      </div>
+    </div>
+
+    <div class="window">
+      <div class="window-topbar">
+        <div class="win-dot"></div>
+        <div class="win-dot"></div>
+        <div class="win-dot"></div>
+        <div class="window-title">Secure OS • System Dashboard</div>
+      </div>
+      <div class="window-body">
+        <div class="window-left">
+          <div class="mini-label">Welcome</div>
+          <div class="window-heading">Secure OS Desktop</div>
+          <div class="window-subtext">
+            You have successfully passed <b>Login</b> and <b>OTP Verification</b>.
+            This screen represents your custom OS-style interface for your project.
+          </div>
+
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            Authenticated • Session Active
+          </div>
+
+          <div class="window-subtext">
+            You can customize this area to show modules like:<br />
+            • Health Monitoring Dashboard<br />
+            • User Activity Logs<br />
+            • Security Alerts & System Status
+          </div>
+        </div>
+
+        <div class="window-right">
+          <div>
+            <div class="mini-label">Session</div>
+            <div class="metric-box">
+              <div class="metric-label">User</div>
+              <div class="metric-value" id="loggedUser">admin</div>
+            </div>
+          </div>
+          <div>
+            <div class="mini-label">Security Level</div>
+            <div class="metric-box">
+              <div class="metric-label">Authentication</div>
+              <div class="metric-value">2-Step (Password + OTP)</div>
+            </div>
+          </div>
+          <div>
+            <div class="mini-label">System</div>
+            <div class="metric-box">
+              <div class="metric-label">Mode</div>
+              <div class="metric-value">Secure OS Interface</div>
+            </div>
+          </div>
+          <div>
+            <div class="mini-label">Action</div>
+            <button class="btn" style="padding: 8px 0; font-size: 14px;" id="logoutBtn">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="taskbar">
+      <div class="task-start">S</div>
+      <div class="task-search">Type here to search...</div>
+      <div class="task-clock" id="taskClock">--:--</div>
+    </div>
+  </div>
+
+  <script>
+    // DEMO CREDENTIALS
+    const VALID_USER = "admin";
+    const VALID_PASS = "1234";
+    const VALID_OTP = "559911";  // 6-digit OTP
+
+
+    const loginCard = document.getElementById("loginCard");
+    const otpCard = document.getElementById("otpCard");
+    const desktop = document.getElementById("desktop");
+
+    const loginForm = document.getElementById("loginForm");
+    const otpForm = document.getElementById("otpForm");
+
+    const loginError = document.getElementById("loginError");
+    const otpError = document.getElementById("otpError");
+    const loggedUser = document.getElementById("loggedUser");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const taskClock = document.getElementById("taskClock");
+
+    let currentUser = "";
+
+    // LOGIN SUBMIT
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      loginError.textContent = "";
+
+      if (!user || !pass) {
+        loginError.textContent = "Please enter both username and password.";
+        return;
+      }
+
+      if (user === VALID_USER && pass === VALID_PASS) {
+        currentUser = user;
+        // Go to OTP screen
+        loginCard.classList.remove("active");
+        otpCard.classList.add("active");
+      } else {
+        loginError.textContent = "Invalid username or password.";
+      }
+    });
+
+    // OTP SUBMIT
+    otpForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const otpValue = document.getElementById("otp").value.trim();
+      otpError.textContent = "";
+
+      if (!otpValue) {
+        otpError.textContent = "Please enter the OTP.";
+        return;
+      }
+
+      if (otpValue === VALID_OTP) {
+        // Go to desktop view
+        otpCard.classList.remove("active");
+        desktop.classList.add("active");
+        loggedUser.textContent = currentUser || "admin";
+      } else {
+        otpError.textContent = "Incorrect OTP. Try again.";
+      }
+    });
+
+    // LOGOUT BUTTON -> Back to login
+    logoutBtn.addEventListener("click", function () {
+      desktop.classList.remove("active");
+      loginCard.classList.add("active");
+      loginForm.reset();
+      otpForm.reset();
+      loginError.textContent = "";
+      otpError.textContent = "";
+    });
+
+    // CLOCK IN TASKBAR
+    function updateClock() {
+      const now = new Date();
+      const hrs = String(now.getHours()).padStart(2, "0");
+      const mins = String(now.getMinutes()).padStart(2, "0");
+      taskClock.textContent = `${hrs}:${mins}`;
+    }
+    updateClock();
+    setInterval(updateClock, 30000); // update every 30 seconds
+  </script>
+</body>
+</html>
